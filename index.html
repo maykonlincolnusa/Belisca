@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Belisca • Sistema de Inteligência Operacional para Delivery de Petiscos</title>
+  <meta name="description" content="Belisca é o instrumento de gestão para delivery de petiscos: cálculo de pedidos vendidos, baixa de insumos por ficha técnica e conciliação financeira em tempo real.">
+  
+  <!-- Fontes Google Modernas: Outfit + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-belisca">
+  <!-- Top Navigation Bar -->
+  <header class="app-header" id="appHeader">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-logo-badge">
+          <span class="logo-icon">🍤</span>
+          <span class="logo-dot"></span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-title">
+            <span class="brand-name">BELISCA</span>
+            <span class="badge-status">PRE-ERP v1.0</span>
+          </div>
+          <span class="brand-tagline">Triangulação de Pedidos • Estoque de Insumos • DRE Financeiro</span>
+        </div>
+      </div>
+
+      <!-- Quick Operational Indicators -->
+      <div class="header-metrics">
+        <div class="metric-pill">
+          <span class="metric-label">Status da Cozinha:</span>
+          <span class="metric-val open-status"><span class="pulse-indicator"></span> Aberto p/ Delivery</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-label">Pico Estimado:</span>
+          <span class="metric-val highlight-amber">Sexta/Sábado 20h - 23h30</span>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btnExportData" title="Exportar Relatório">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Exportar
+        </button>
+        <button class="btn btn-primary" id="btnNovoPedidoModal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Lançar Pedido
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="sub-nav">
+      <div class="nav-links">
+        <button class="nav-tab active" data-tab="tab-triangulacao" id="tabBtnTriangulacao">
+          <span class="tab-icon">⚡</span> Triangulação Operacional
+        </button>
+        <button class="nav-tab" data-tab="tab-pedidos" id="tabBtnPedidos">
+          <span class="tab-icon">🛵</span> Pedidos Vendidos
+          <span class="counter-badge" id="ordersCounter">14</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-estoque" id="tabBtnEstoque">
+          <span class="tab-icon">🥩</span> Insumos & Ficha Técnica
+          <span class="counter-badge warning" id="stockAlertCounter">2</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-financeiro" id="tabBtnFinanceiro">
+          <span class="tab-icon">💰</span> DRE & Conciliação
+        </button>
+        <button class="nav-tab" data-tab="tab-ia-huggingface" id="tabBtnIA">
+          <span class="tab-icon">🤗</span> IA & Hugging Face Hub
+          <span class="ai-badge">Modelos & Datasets</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-container">
+    
+    <!-- 1. TAB TRIANGULAÇÃO (Visão Executiva) -->
+    <section class="tab-content active" id="tab-triangulacao">
+      <!-- Big Numbers Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Faturamento Bruto Delivery</span>
+            <span class="kpi-icon-wrap amber">💵</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiFaturamento">R$ 3.842,50</div>
+            <div class="kpi-sub positive">
+              <span>↑ 18.4%</span> vs semana anterior (58 pedidos)
+            </div>
+          </div>
+          <div class="kpi-progress">
+            <div class="progress-bar-fill" style="width: 76%;"></div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Custo Insumos (CMV Petiscos)</span>
+            <span class="kpi-icon-wrap">🥩</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiCMV">R$ 1.185,40</div>
+            <div class="kpi-sub">
+              <span class="tag-cmv">30.8% do faturamento</span> (Meta: &lt; 32%)
+            </div>
+          </div>
+          <div class="kpi-progress">
+            <div class="progress-bar-fill warning" style="width: 61%;"></div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Taxas de Apps & Gateways</span>
+            <span class="kpi-icon-wrap red">📉</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiTaxas">R$ 672,80</div>
+            <div class="kpi-sub">
+              <span>iFood (23%)</span> + Maquininha/PIX
+            </div>
+          </div>
+          <div class="kpi-progress">
+            <div class="progress-bar-fill red" style="width: 42%;"></div>
+          </div>
+        </div>
+
+        <div class="kpi-card highlight-border">
+          <div class="kpi-header">
+            <span class="kpi-title">Lucro Líquido Real</span>
+            <span class="kpi-icon-wrap gold">🏆</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value text-amber" id="kpiLucroLiquido">R$ 1.984,30</div>
+            <div class="kpi-sub positive">
+              <span class="tag-profit">51.6% Margem Líquida</span>
+            </div>
+          </div>
+          <div class="kpi-progress">
+            <div class="progress-bar-fill amber" style="width: 82%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Triangulation Diagnostic Diagram -->
+      <div class="triangulation-banner">
+        <div class="banner-title-box">
+          <div class="badge-amber">O INSTRUMENTO BELISCA</div>
+          <h2>Triangulação em Tempo Real do Delivery</h2>
+          <p>Ao registrar um pedido vendido, o Belisca calcula a baixa exata de insumos (gramas de carne, óleo, embalagem) e o impacto financeiro líquido imediato.</p>
+        </div>
+
+        <div class="triangulation-flow">
+          <!-- Step 1: Pedido -->
+          <div class="flow-card">
+            <div class="card-step-badge">1. ENTRADA</div>
+            <div class="card-icon">🛵</div>
+            <h3>Pedido Vendido</h3>
+            <p class="flow-meta">Canal: iFood / Whats / Salão</p>
+            <div class="flow-metrics-box">
+              <span class="box-label">Exemplo:</span>
+              <span class="box-val">Porção Batata Cheddar + Bacon</span>
+              <span class="box-price">R$ 42,00</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flow-arrow">
+            <span>Baixa na Ficha</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+
+          <!-- Step 2: Estoque -->
+          <div class="flow-card active-flow">
+            <div class="card-step-badge amber">2. CRUZA ESTOQUE</div>
+            <div class="card-icon">📦</div>
+            <h3>Baixa de Insumos</h3>
+            <p class="flow-meta">Ficha Técnica Automatizada</p>
+            <div class="flow-metrics-box">
+              <span class="box-label">Consumo:</span>
+              <span class="box-ingredient">-450g Batata Palito</span>
+              <span class="box-ingredient">-80g Molho Cheddar</span>
+              <span class="box-ingredient">-60g Bacon Cubos</span>
+              <span class="box-ingredient">-1x Embalagem Kraft</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flow-arrow">
+            <span>Cruza Financeiro</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+
+          <!-- Step 3: Financeiro -->
+          <div class="flow-card">
+            <div class="card-step-badge">3. CRUZA DRE</div>
+            <div class="card-icon">💰</div>
+            <h3>Reconciliação</h3>
+            <p class="flow-meta">Margem e Liquidez Real</p>
+            <div class="flow-metrics-box">
+              <div class="fin-row"><span>Bruto:</span> <strong>R$ 42,00</strong></div>
+              <div class="fin-row text-red"><span>Taxa Canal:</span> <strong>- R$ 9,66</strong></div>
+              <div class="fin-row text-red"><span>CMV Insumos:</span> <strong>- R$ 11,80</strong></div>
+              <div class="fin-row text-amber highlight"><span>Lucro Real:</span> <strong>+ R$ 20,54</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action / Live Alerts Row -->
+      <div class="alerts-and-shortcuts">
+        <div class="section-card alerts-box">
+          <div class="section-header">
+            <h3><span class="alert-icon">⚠️</span> Alertas de Ruptura de Estoque (Pico Fim de Semana)</h3>
+            <span class="badge-danger">Atenção Necessária</span>
+          </div>
+          <div class="alerts-list" id="stockAlertsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="section-card channels-box">
+          <div class="section-header">
+            <h3><span class="alert-icon">📊</span> Faturamento por Canal de Venda</h3>
+            <span class="badge-neutral">Hoje</span>
+          </div>
+          <div class="channel-distribution">
+            <div class="channel-item">
+              <div class="channel-info">
+                <span class="channel-name">iFood Delivery (Taxa Média 23%)</span>
+                <span class="channel-value">R$ 2.410,00 (62%)</span>
+              </div>
+              <div class="channel-bar-bg"><div class="channel-bar-fill red" style="width: 62%;"></div></div>
+            </div>
+            <div class="channel-item">
+              <div class="channel-info">
+                <span class="channel-name">WhatsApp Direto / Cardápio Digital (Taxa 0.9% PIX)</span>
+                <span class="channel-value">R$ 1.150,50 (30%)</span>
+              </div>
+              <div class="channel-bar-bg"><div class="channel-bar-fill amber" style="width: 30%;"></div></div>
+            </div>
+            <div class="channel-item">
+              <div class="channel-info">
+                <span class="channel-name">Balcão / Retirada (Takeaway)</span>
+                <span class="channel-value">R$ 282,00 (8%)</span>
+              </div>
+              <div class="channel-bar-bg"><div class="channel-bar-fill white" style="width: 8%;"></div></div>
+            </div>
+          </div>
+          <div class="channel-tip">
+            💡 <strong>Insight Belisca:</strong> Pedidos pelo WhatsApp geram <strong>+22.1% de margem líquida</strong> em comparação com os mesmos petiscos no iFood.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TAB PEDIDOS VENDIDOS -->
+    <section class="tab-content" id="tab-pedidos">
+      <div class="content-toolbar">
+        <div class="search-filter-group">
+          <input type="text" id="orderSearchInput" class="input-dark" placeholder="Buscar por cliente, petisco ou comanda...">
+          <select id="channelFilter" class="select-dark">
+            <option value="ALL">Todos os Canais</option>
+            <option value="iFood">iFood</option>
+            <option value="WhatsApp">WhatsApp Direto</option>
+            <option value="Balcão">Balcão / Retirada</option>
+          </select>
+          <select id="statusFilter" class="select-dark">
+            <option value="ALL">Todos os Status</option>
+            <option value="Entregue">Entregue</option>
+            <option value="Em Preparo">Em Preparo</option>
+            <option value="Em Rota">Em Rota</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btnNovoPedidoDirect">
+          + Registrar Novo Pedido
+        </button>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="table-container">
+        <table class="data-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th>ID / Horário</th>
+              <th>Canal</th>
+              <th>Cliente</th>
+              <th>Petisco(s) & Itens</th>
+              <th>Valor Bruto</th>
+              <th>Taxa Canal</th>
+              <th>CMV Insumos</th>
+              <th>Lucro Líq.</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. TAB ESTOQUE & FICHA TÉCNICA -->
+    <section class="tab-content" id="tab-estoque">
+      <div class="stock-dashboard-header">
+        <div class="stock-intro">
+          <h2>Controle de Insumos & Fichas Técnicas de Petiscos</h2>
+          <p>O Belisca desconta automaticamente cada grama e unidade de embalagem quando a fritadeira/chapa recebe o pedido.</p>
+        </div>
+        <div class="stock-actions">
+          <button class="btn btn-secondary" id="btnNovaFichaTecnica">+ Nova Ficha de Petisco</button>
+          <button class="btn btn-primary" id="btnEntradaInsumo">+ Lançar Compra / Entrada</button>
+        </div>
+      </div>
+
+      <!-- Two Columns: Petiscos Catalog and Raw Ingredients Inventory -->
+      <div class="stock-two-col">
+        <!-- Col 1: Cardápio de Petiscos com Ficha Técnica -->
+        <div class="col-panel">
+          <div class="panel-header">
+            <h3>🍟 Cardápio de Petiscos (Preço x Custo Ficha Técnica)</h3>
+            <span class="badge-neutral" id="petiscosCount">6 itens ativos</span>
+          </div>
+          <div class="petiscos-list" id="petiscosList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Col 2: Estoque Atual de Insumos e Embalagens -->
+        <div class="col-panel">
+          <div class="panel-header">
+            <h3>🥩 Insumos, Carnes, Bebidas & Embalagens</h3>
+            <span class="badge-amber">Monitoramento em Tempo Real</span>
+          </div>
+          <div class="ingredients-table-wrap">
+            <table class="data-table compact" id="ingredientsTable">
+              <thead>
+                <tr>
+                  <th>Insumo</th>
+                  <th>Qtd Atual</th>
+                  <th>Mínimo</th>
+                  <th>Custo Unit.</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="ingredientsTableBody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TAB FINANCEIRO & DRE -->
+    <section class="tab-content" id="tab-financeiro">
+      <div class="fin-layout">
+        <div class="fin-column-main">
+          <!-- DRE Statement Card -->
+          <div class="section-card dre-card">
+            <div class="section-header">
+              <div>
+                <h2>Demonstrativo de Resultado do Exercício (DRE Delivery)</h2>
+                <span class="text-muted">Cruzamento real entre Vendas, Taxas de Aplicativos e Insumos</span>
+              </div>
+              <div class="date-badge">Hoje • Período Operacional</div>
+            </div>
+
+            <div class="dre-table-wrap">
+              <table class="dre-table">
+                <tbody>
+                  <tr class="dre-level-1">
+                    <td>(=) Faturamento Bruto de Petiscos</td>
+                    <td class="text-right font-mono" id="dreBruto">R$ 3.842,50</td>
+                    <td class="text-right font-mono badge-col">100.0%</td>
+                  </tr>
+                  <tr class="dre-level-2 text-red">
+                    <td>(-) Deduções e Taxas de Marketplace (iFood / Rappi)</td>
+                    <td class="text-right font-mono" id="dreTaxasApp">- R$ 584,20</td>
+                    <td class="text-right font-mono badge-col">15.2%</td>
+                  </tr>
+                  <tr class="dre-level-2 text-red">
+                    <td>(-) Taxas de Meios de Pagamento (Cartão/PIX)</td>
+                    <td class="text-right font-mono" id="dreTaxasGateway">- R$ 88,60</td>
+                    <td class="text-right font-mono badge-col">2.3%</td>
+                  </tr>
+                  <tr class="dre-subtotal">
+                    <td>(=) Receita Operacional Líquida</td>
+                    <td class="text-right font-mono" id="dreReceitaLiq">R$ 3.169,70</td>
+                    <td class="text-right font-mono badge-col">82.5%</td>
+                  </tr>
+                  <tr class="dre-level-2 text-red">
+                    <td>(-) CMV - Insumos Gastos (Carnes, Queijos, Batata, Óleo)</td>
+                    <td class="text-right font-mono" id="dreCMVInsumos">- R$ 1.025,40</td>
+                    <td class="text-right font-mono badge-col">26.7%</td>
+                  </tr>
+                  <tr class="dre-level-2 text-red">
+                    <td>(-) Custo de Embalagens Descartáveis Delivery</td>
+                    <td class="text-right font-mono" id="dreEmbalagens">- R$ 160,00</td>
+                    <td class="text-right font-mono badge-col">4.1%</td>
+                  </tr>
+                  <tr class="dre-subtotal amber">
+                    <td>(=) Margem de Contribuição Bruta (Lucro Bruto)</td>
+                    <td class="text-right font-mono text-amber" id="dreMargemContrib">R$ 1.984,30</td>
+                    <td class="text-right font-mono badge-col text-amber">51.6%</td>
+                  </tr>
+                  <tr class="dre-level-2 text-muted">
+                    <td>(-) Rateio Custos Fixos Operacionais (Gás, Energia, Equipe)</td>
+                    <td class="text-right font-mono" id="dreCustosFixos">- R$ 420,00</td>
+                    <td class="text-right font-mono badge-col">10.9%</td>
+                  </tr>
+                  <tr class="dre-final-total">
+                    <td>(=) Resultado Líquido Final da Operação</td>
+                    <td class="text-right font-mono text-bold-amber" id="dreLucroFinal">R$ 1.564,30</td>
+                    <td class="text-right font-mono badge-col text-bold-amber">40.7%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="fin-column-side">
+          <!-- Conciliação Bancária / Recebíveis -->
+          <div class="section-card">
+            <div class="section-header">
+              <h3>Calendário de Recebimento de Vendas</h3>
+            </div>
+            <div class="settlement-list">
+              <div class="settlement-item">
+                <div class="set-icon pix">PIX</div>
+                <div class="set-details">
+                  <span class="set-name">PIX Instantâneo (WhatsApp/Balcão)</span>
+                  <span class="set-sub">Disponível Imediato em Conta</span>
+                </div>
+                <div class="set-val font-mono">R$ 1.150,50</div>
+              </div>
+              <div class="settlement-item">
+                <div class="set-icon card">D+1</div>
+                <div class="set-details">
+                  <span class="set-name">Cartão Débito Maquininha</span>
+                  <span class="set-sub">Previsto para amanhã</span>
+                </div>
+                <div class="set-val font-mono">R$ 282,00</div>
+              </div>
+              <div class="settlement-item">
+                <div class="set-icon ifood">iFood</div>
+                <div class="set-details">
+                  <span class="set-name">Repasse Semanal iFood</span>
+                  <span class="set-sub">Próxima Quarta-feira (D+7)</span>
+                </div>
+                <div class="set-val font-mono highlight-amber">R$ 1.825,80</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unit Economics Card -->
+          <div class="section-card">
+            <div class="section-header">
+              <h3>Unit Economics Médio por Pedido</h3>
+            </div>
+            <div class="unit-eco-metrics">
+              <div class="eco-item">
+                <span class="eco-lbl">Ticket Médio:</span>
+                <span class="eco-val font-mono">R$ 66,25</span>
+              </div>
+              <div class="eco-item">
+                <span class="eco-lbl">Taxa App Média:</span>
+                <span class="eco-val font-mono text-red">R$ 11,60</span>
+              </div>
+              <div class="eco-item">
+                <span class="eco-lbl">CMV Médio:</span>
+                <span class="eco-val font-mono text-red">R$ 20,43</span>
+              </div>
+              <div class="eco-item highlight">
+                <span class="eco-lbl">Lucro Médio p/ Pedido:</span>
+                <span class="eco-val font-mono text-amber">R$ 34,22 (51.6%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. TAB IA & HUGGING FACE HUB -->
+    <section class="tab-content" id="tab-ia-huggingface">
+      <div class="ia-hero">
+        <div class="ia-hero-badge">
+          <span class="hf-logo">🤗</span> HUGGING FACE MODELS & DATASETS PARA O BELISCA
+        </div>
+        <h2>Previsão de Demanda de Petiscos, Ruptura de Estoque e Conciliação Tabular</h2>
+        <p>Seleção oficial dos melhores modelos pré-treinados e datasets públicos no Hugging Face Hub adaptados para a operação do delivery de petiscos.</p>
+      </div>
+
+      <!-- Models Grid -->
+      <div class="hf-section-title">
+        <h3>🤖 Modelos de IA Recomendados (Hugging Face)</h3>
+        <span>Modelos Foundation para séries temporais e dados tabulares de ERP</span>
+      </div>
+
+      <div class="hf-cards-grid">
+        <!-- Model 1: Chronos-2 -->
+        <div class="hf-card featured">
+          <div class="hf-card-tag">RECOMENDADO N° 1 PARA PETISCOS</div>
+          <div class="hf-card-header">
+            <div class="model-repo-id">amazon/chronos-2</div>
+            <span class="model-badge">Time-Series Zero-Shot</span>
+          </div>
+          <h4>Amazon Chronos-2 & Chronos-Bolt</h4>
+          <p class="hf-desc">
+            Modelo foundation pré-treinado baseado em Transformers que converte séries temporais em tokens. Ideal para <strong>previsão probabilística (quantis P10, P50, P90) de porções de petiscos para o fim de semana</strong> e compras exatas de insumos perecíveis (batata, carnes, óleo).
+          </p>
+          <div class="hf-features-list">
+            <div class="feat-item">✓ Suporta covariáveis externas (feriados, clima de chuva, dia de futebol).</div>
+            <div class="feat-item">✓ Calcula estoque de segurança exato com 95% de nível de serviço.</div>
+            <div class="feat-item">✓ Versão <code>amazon/chronos-bolt-base</code> tem inferência ultra-rápida em CPU.</div>
+          </div>
+          <div class="code-snippet-box">
+            <div class="snippet-header">
+              <span>Python / transformers</span>
+              <button class="btn-copy-code" data-code="chronos">Copiar Código</button>
+            </div>
+            <pre><code>from chronos import Chronos2Pipeline
+pipeline = Chronos2Pipeline.from_pretrained("amazon/chronos-2")
+forecast = pipeline.predict_df(vendas_historico_df, prediction_length=4)</code></pre>
+          </div>
+        </div>
+
+        <!-- Model 2: Google TimesFM -->
+        <div class="hf-card">
+          <div class="hf-card-tag google">GOOGLE RESEARCH</div>
+          <div class="hf-card-header">
+            <div class="model-repo-id">google/timesfm-2.0-500m-pytorch</div>
+            <span class="model-badge">500M Params</span>
+          </div>
+          <h4>Google TimesFM 2.0 (PyTorch)</h4>
+          <p class="hf-desc">
+            Foundation model do Google para previsão de séries temporais de alta frequência. Excelente para prever o fluxo de pedidos por hora (curva de almoço e curva de happy hour noturno no delivery).
+          </p>
+          <div class="hf-features-list">
+            <div class="feat-item">✓ Previsão multivariada de pedidos por hora.</div>
+            <div class="feat-item">✓ Otimiza escala de equipe na cozinha e fritadeiras.</div>
+          </div>
+          <div class="code-snippet-box">
+            <div class="snippet-header">
+              <span>Hugging Face Checkpoint</span>
+              <button class="btn-copy-code" data-code="timesfm">Copiar Link</button>
+            </div>
+            <pre><code># Hugging Face Hub ID:
+google/timesfm-2.0-500m-pytorch</code></pre>
+          </div>
+        </div>
+
+        <!-- Model 3: Prior-Labs TabPFN -->
+        <div class="hf-card">
+          <div class="hf-card-tag tabular">DADOS TABULARES ERP</div>
+          <div class="hf-card-header">
+            <div class="model-repo-id">Prior-Labs/TabPFN-v2-clf</div>
+            <span class="model-badge">In-Context Tabular</span>
+          </div>
+          <h4>TabPFN v2 (Prior Labs)</h4>
+          <p class="hf-desc">
+            O modelo de Transformer mais avançado para dados tabulares do mundo. Executa previsões instantâneas em 1 segundo sem necessidade de treino ou tuning de hiperparâmetros.
+          </p>
+          <div class="hf-features-list">
+            <div class="feat-item">✓ <strong>Classificação de Risco de Ruptura</strong>: prevê se o insumo vai acabar no meio do sábado.</div>
+            <div class="feat-item">✓ <strong>Previsão de Atraso e Cancelamento</strong> por raio e forma de pagamento.</div>
+            <div class="feat-item">✓ <code>Prior-Labs/TabPFN-v2-reg</code> para regressão de margem financeira líquida.</div>
+          </div>
+          <div class="code-snippet-box">
+            <div class="snippet-header">
+              <span>Python / tabpfn</span>
+              <button class="btn-copy-code" data-code="tabpfn">Copiar Código</button>
+            </div>
+            <pre><code>from tabpfn import TabPFNClassifier
+clf = TabPFNClassifier(device='cpu')
+clf.fit(X_erp_train, y_ruptura_train)</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datasets Grid -->
+      <div class="hf-section-title" style="margin-top: 36px;">
+        <h3>📦 Datasets Recomendados no Hugging Face Hub</h3>
+        <span>Bases de dados para treinar, ajustar e simular a inteligência do Belisca</span>
+      </div>
+
+      <div class="hf-datasets-grid">
+        <!-- Dataset 1 -->
+        <div class="dataset-card">
+          <div class="ds-header">
+            <span class="ds-icon">🍟</span>
+            <div>
+              <div class="ds-repo">EpicVic2193/restaurant-inventory-forecasting</div>
+              <h4>Restaurant Inventory Forecasting</h4>
+            </div>
+          </div>
+          <p class="ds-desc">
+            Dataset específico para previsão de estoque de restaurantes e cozinhas de delivery. Inclui histórico de vendas, padrões de dia da semana, previsão climática e eventos esportivos.
+          </p>
+          <div class="ds-meta">
+            <span class="meta-pill">Parquet</span>
+            <span class="meta-pill">10K-100K Rows</span>
+            <span class="meta-pill highlight">Estoque de Cozinha</span>
+          </div>
+          <div class="ds-code">
+            <code>from datasets import load_dataset<br>ds = load_dataset("EpicVic2193/restaurant-inventory-forecasting")</code>
+          </div>
+        </div>
+
+        <!-- Dataset 2 -->
+        <div class="dataset-card">
+          <div class="ds-header">
+            <span class="ds-icon">🛵</span>
+            <div>
+              <div class="ds-repo">aneesarom/Food-Delivery</div>
+              <h4>Food Delivery Logistics & Orders</h4>
+            </div>
+          </div>
+          <p class="ds-desc">
+            Dataset tabular com métricas de pedidos de comida, tempo de preparo de porções, clima, tráfego de motoboys e horários de pico.
+          </p>
+          <div class="ds-meta">
+            <span class="meta-pill">Tabular</span>
+            <span class="meta-pill">Delivery Time</span>
+            <span class="meta-pill highlight">Logística & Operação</span>
+          </div>
+          <div class="ds-code">
+            <code>from datasets import load_dataset<br>ds = load_dataset("aneesarom/Food-Delivery")</code>
+          </div>
+        </div>
+
+        <!-- Dataset 3 -->
+        <div class="dataset-card">
+          <div class="ds-header">
+            <span class="ds-icon">🇧🇷</span>
+            <div>
+              <div class="ds-repo">miminmoons/olist-ecommerce-for-delivery-and-review-prediction</div>
+              <h4>Brazilian Delivery & Payments (Olist)</h4>
+            </div>
+          </div>
+          <p class="ds-desc">
+            Versão pré-processada em Parquet da base brasileira de pedidos reais com valores monetários em Reais (R$), taxas de frete, método de pagamento e previsão de atraso.
+          </p>
+          <div class="ds-meta">
+            <span class="meta-pill">Real BRL R$</span>
+            <span class="meta-pill">Payments & Fees</span>
+            <span class="meta-pill highlight">Mercado Brasileiro</span>
+          </div>
+          <div class="ds-code">
+            <code>from datasets import load_dataset<br>ds = load_dataset("miminmoons/olist-ecommerce-for-delivery-and-review-prediction")</code>
+          </div>
+        </div>
+
+        <!-- Dataset 4 -->
+        <div class="dataset-card">
+          <div class="ds-header">
+            <span class="ds-icon">🏛️</span>
+            <div>
+              <div class="ds-repo">jocapc/ContosoRetailsDW</div>
+              <h4>Retail Enterprise Star Schema (ERP)</h4>
+            </div>
+          </div>
+          <p class="ds-desc">
+            Modelo de dados padrão de ERP com tabelas fato completas de <code>FactInventory</code> (níveis de estoque) cruzadas com <code>FactSales</code> (pedidos vendidos) e estratégia financeira.
+          </p>
+          <div class="ds-meta">
+            <span class="meta-pill">Star Schema</span>
+            <span class="meta-pill">FactInventory</span>
+            <span class="meta-pill highlight">Arquitetura ERP</span>
+          </div>
+          <div class="ds-code">
+            <code>from datasets import load_dataset<br>ds = load_dataset("jocapc/ContosoRetailsDW")</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Demand Forecast Simulator -->
+      <div class="section-card ai-simulator-card">
+        <div class="section-header">
+          <div>
+            <h3>🔮 Simulador do Modelo Chronos-2 para a Cozinha do Belisca</h3>
+            <span class="text-muted">Previsão probabilística para a próxima Sexta e Sábado (Fim de Semana)</span>
+          </div>
+          <button class="btn btn-primary" id="btnRodarPrevisaoIA">
+            <span class="sparkle">✨</span> Rodar Previsão com IA
+          </button>
+        </div>
+
+        <div class="ai-sim-results" id="aiSimResults">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Lançar Novo Pedido -->
+  <div class="modal-overlay" id="modalNovoPedido">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">🍤</span>
+          <div>
+            <h3>Registrar Pedido de Petisco</h3>
+            <p>O Belisca fará a baixa imediata de insumos e atualizará o DRE</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+      </div>
+
+      <form id="formNovoPedido">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="inputCliente">Nome do Cliente</label>
+              <input type="text" id="inputCliente" class="input-dark" placeholder="Ex: Lucas Ferreira - Apto 42" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="selectCanal">Canal de Venda</label>
+              <select id="selectCanal" class="select-dark" required>
+                <option value="iFood">iFood (Taxa 23%)</option>
+                <option value="WhatsApp" selected>WhatsApp Direto (PIX / Taxa 0.9%)</option>
+                <option value="Balcão">Balcão / Retirada (Taxa 1.9%)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="selectPetisco">Petisco Escolhido</label>
+            <select id="selectPetisco" class="select-dark" required>
+              <!-- Loaded by JS -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="inputQuantidade">Quantidade de Porções</label>
+              <input type="number" id="inputQuantidade" class="input-dark" min="1" max="20" value="1" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="inputFormaPagamento">Forma de Pagamento</label>
+              <select id="inputFormaPagamento" class="select-dark">
+                <option value="PIX">PIX</option>
+                <option value="Cartão Crédito">Cartão Crédito</option>
+                <option value="Cartão Débito">Cartão Débito</option>
+                <option value="Dinheiro">Dinheiro</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Live Preview of Triangulation -->
+          <div class="live-preview-box" id="livePreviewBox">
+            <div class="preview-title">Impacto do Pedido na Triangulação:</div>
+            <div class="preview-grid">
+              <div>
+                <span class="lbl">Preço de Venda:</span>
+                <span class="val font-mono" id="prevPrecoVenda">R$ 0,00</span>
+              </div>
+              <div>
+                <span class="lbl">Taxa Canal:</span>
+                <span class="val font-mono text-red" id="prevTaxaCanal">- R$ 0,00</span>
+              </div>
+              <div>
+                <span class="lbl">CMV Ficha Técnica:</span>
+                <span class="val font-mono text-red" id="prevCMV">- R$ 0,00</span>
+              </div>
+              <div>
+                <span class="lbl">Lucro Real Líquido:</span>
+                <span class="val font-mono text-amber" id="prevLucroReal">R$ 0,00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelarPedido">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSalvarPedido">Confirmar e Baixar Estoque</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application JS Script -->
+  <script src="app.js"></script>
+</body>
+</html>
