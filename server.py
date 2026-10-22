@@ -9,7 +9,9 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from forecast_service import DemandForecaster
 
 PORT = int(os.environ.get("PORT", 8080))
-HOST = "0.0.0.0"
+# Railway injeta PORT e usa 0.0.0.0; em desenvolvimento, defina HOST=127.0.0.1
+# para expor o preview somente neste computador.
+HOST = os.environ.get("HOST", "0.0.0.0")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FORECASTER = DemandForecaster(Path(BASE_DIR) / "dataset" / "demanda_historica_sazonalidade.csv")
@@ -102,17 +104,25 @@ class BeliscaRailwayHandler(SimpleHTTPRequestHandler):
             return {"error": "Dataset não encontrado"}
 
         total_pedidos = 0
+        total_registros = 0
+        total_cancelados = 0
         total_bruto = 0.0
         total_taxas = 0.0
         total_cmv = 0.0
         total_lucro = 0.0
         por_canal = {}
+        por_origem = {}
         por_petisco = {}
+        datas = []
 
         with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
+                total_registros += 1
+                if row.get("data_hora"):
+                    datas.append(row["data_hora"][:10])
                 if row.get("status") == "Cancelado":
+                    total_cancelados += 1
                     continue
                 total_pedidos += 1
                 bruto = float(row.get("valor_bruto", 0))
@@ -134,6 +144,13 @@ class BeliscaRailwayHandler(SimpleHTTPRequestHandler):
                 por_canal[canal]["faturamento"] += bruto
                 por_canal[canal]["taxas"] += (taxa_canal + taxa_trans)
                 por_canal[canal]["lucro"] += lucro
+
+                origem = row.get("tipo_operacao") or ("Presencial" if canal in {"Balcão", "Salão / Mesa"} else "Delivery")
+                if origem not in por_origem:
+                    por_origem[origem] = {"pedidos": 0, "faturamento": 0.0, "lucro": 0.0}
+                por_origem[origem]["pedidos"] += 1
+                por_origem[origem]["faturamento"] += bruto
+                por_origem[origem]["lucro"] += lucro
 
                 # Por petisco
                 petisco = row.get("petisco", "Outro")
@@ -165,7 +182,9 @@ class BeliscaRailwayHandler(SimpleHTTPRequestHandler):
             })
 
         return {
-            "periodo": "Últimos 45 dias operacionais (Dataset Belisca)",
+            "periodo": f"{min(datas) if datas else '-'} a {max(datas) if datas else '-'}",
+            "total_registros": total_registros,
+            "total_cancelados": total_cancelados,
             "total_pedidos": total_pedidos,
             "faturamento_bruto": round(total_bruto, 2),
             "ticket_medio": round(ticket_medio, 2),
@@ -177,6 +196,7 @@ class BeliscaRailwayHandler(SimpleHTTPRequestHandler):
             "margem_liquida_pct": round(margem_liq_pct, 1),
             "ponto_equilibrio_diario": 14,
             "desempenho_canais": por_canal,
+            "desempenho_origens": por_origem,
             "curva_abc": curva_abc
         }
 

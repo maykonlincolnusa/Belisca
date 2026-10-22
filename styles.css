@@ -1821,6 +1821,17 @@ body {
   gap: 10px;
 }
 
+.report-source-strip {
+  display: inline-flex;
+  margin-top: 14px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 184, 0, 0.28);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .report-two-col {
   display: grid;
   grid-template-columns: 1.15fr 1fr;

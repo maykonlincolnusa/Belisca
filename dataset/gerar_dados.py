@@ -1,14 +1,19 @@
 import csv
 import random
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Gera um dataset rico e realista de pedidos de petiscos para o Belisca
 random.seed(42)
 
 canais = [
-    ("iFood", 0.23, ["Cartão Crédito", "Cartão Débito", "Saldo iFood", "PIX"]),
-    ("WhatsApp", 0.009, ["PIX", "Dinheiro"]),
-    ("Balcão", 0.019, ["Cartão Débito", "Cartão Crédito", "PIX", "Dinheiro"])
+    # Taxas demonstrativas: devem ser substituídas pelas taxas contratadas do restaurante.
+    ("iFood", "Delivery marketplace", 0.23, ["Cartão Crédito", "Cartão Débito", "Saldo iFood", "PIX"]),
+    ("99Food", "Delivery marketplace", 0.16, ["Cartão Crédito", "Cartão Débito", "PIX"]),
+    ("Rappi", "Delivery marketplace", 0.20, ["Cartão Crédito", "Cartão Débito", "PIX"]),
+    ("WhatsApp / Direto", "Venda direta", 0.009, ["PIX", "Dinheiro", "Cartão Crédito"]),
+    ("Balcão / Retirada", "Presencial", 0.019, ["Cartão Débito", "Cartão Crédito", "PIX", "Dinheiro"]),
+    ("Salão / Mesa", "Presencial", 0.019, ["Cartão Débito", "Cartão Crédito", "PIX", "Dinheiro"]),
 ]
 
 petiscos_info = {
@@ -34,8 +39,10 @@ for i in range(1, 601):
     dt_pedido = data_inicio + timedelta(days=dias, hours=hora, minutes=minuto)
     dia_semana = dt_pedido.strftime("%A")
 
-    # Canal com peso maior para iFood e WhatsApp
-    canal, taxa_canal_pct, formas_pag = random.choices(canais, weights=[0.55, 0.35, 0.10])[0]
+    # Mix de canais demonstrativo, incluindo operação presencial e marketplaces do Rio.
+    canal, tipo_operacao, taxa_canal_pct, formas_pag = random.choices(
+        canais, weights=[0.35, 0.12, 0.08, 0.20, 0.12, 0.13]
+    )[0]
     forma_pag = random.choice(formas_pag)
 
     # Petisco
@@ -61,6 +68,7 @@ for i in range(1, 601):
         "data_hora": dt_pedido.strftime("%Y-%m-%d %H:%M:%S"),
         "dia_semana": dia_semana,
         "canal_venda": canal,
+        "tipo_operacao": tipo_operacao,
         "forma_pagamento": forma_pag,
         "petisco": petisco_nome,
         "quantidade": qtd,
@@ -77,8 +85,9 @@ for i in range(1, 601):
     })
 
 fieldnames = list(rows[0].keys())
-with open("/Users/maykonlincolndeazeredosantos/Desktop/Belisca/dataset/pedidos_delivery_petiscos.csv", "w", newline="", encoding="utf-8") as f:
-    writer = csv.DictWriter(f, fieldnames=fieldnames)
+output_path = Path(__file__).with_name("pedidos_delivery_petiscos.csv")
+with output_path.open("w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
     writer.writeheader()
     writer.writerows(rows)
 

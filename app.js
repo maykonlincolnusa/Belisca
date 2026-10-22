@@ -255,6 +255,72 @@ function formatBRL(val) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 }
 
+/**
+ * Carrega o mesmo consolidado usado pelo relatório executivo. Assim a Curva
+ * ABC, o mix de canais e os KPIs não dependem de números decorativos distintos.
+ */
+async function loadExecutiveReport() {
+  try {
+    const response = await fetch('/api/kpis');
+    if (!response.ok) throw new Error('Resumo indisponível');
+    const report = await response.json();
+
+    document.getElementById('repTotalFaturamento').textContent = formatBRL(report.faturamento_bruto);
+    document.getElementById('repTicketMedio').textContent = formatBRL(report.ticket_medio);
+    document.getElementById('repCMVMedio').textContent = `${report.cmv_pct.toFixed(1)}%`;
+    const cmvStatus = document.getElementById('repCMVStatus');
+    cmvStatus.textContent = report.cmv_pct <= 32
+      ? '✓ Dentro da meta operacional (< 32%)'
+      : 'Atenção: acima da meta operacional (< 32%)';
+    cmvStatus.parentElement.classList.toggle('positive', report.cmv_pct <= 32);
+    document.getElementById('repBreakEven').textContent = `${report.ponto_equilibrio_diario} porções/dia`;
+    document.getElementById('repPedidosStatus').textContent = `${report.total_pedidos} conciliados · ${report.total_cancelados} cancelados`;
+    document.getElementById('reportBadge').textContent = `${report.total_registros} ped`;
+    document.getElementById('reportDataStatus').textContent =
+      `Base demonstrativa · ${report.periodo} · ${Object.keys(report.desempenho_canais).join(' · ')}`;
+
+    const abcBody = document.getElementById('tbodyCurvaABC');
+    abcBody.innerHTML = report.curva_abc.map(item => `
+      <tr>
+        <td><span class="badge-abc ${item.classe_abc.toLowerCase()}">${item.classe_abc}</span></td>
+        <td><strong>${item.petisco}</strong></td>
+        <td class="font-mono">${item.qtd_vendida}</td>
+        <td class="font-mono">${formatBRL(item.receita)}</td>
+        <td class="font-mono">${item.participacao_pct.toFixed(1)}%</td>
+      </tr>`).join('');
+
+    const channelBody = document.getElementById('tbodyCanais');
+    const channels = Object.entries(report.desempenho_canais).sort(([, a], [, b]) => b.faturamento - a.faturamento);
+    channelBody.innerHTML = channels.map(([channel, data]) => {
+      const feePct = data.faturamento ? (data.taxas / data.faturamento) * 100 : 0;
+      const marginPct = data.faturamento ? (data.lucro / data.faturamento) * 100 : 0;
+      return `<tr>
+        <td><strong>${channel}</strong></td>
+        <td class="font-mono">${data.pedidos}</td>
+        <td class="font-mono">${formatBRL(data.faturamento)}</td>
+        <td class="font-mono text-red">${feePct.toFixed(1)}%</td>
+        <td class="font-mono text-amber">${marginPct.toFixed(1)}%</td>
+      </tr>`;
+    }).join('');
+
+    const bestChannel = channels.reduce((best, current) => {
+      const currentMargin = current[1].faturamento ? current[1].lucro / current[1].faturamento : 0;
+      const bestMargin = best[1].faturamento ? best[1].lucro / best[1].faturamento : 0;
+      return currentMargin > bestMargin ? current : best;
+    });
+    const bestMargin = (bestChannel[1].lucro / bestChannel[1].faturamento) * 100;
+    const marketplace = report.desempenho_origens['Delivery marketplace'];
+    const marketplaceShare = marketplace ? (marketplace.faturamento / report.faturamento_bruto) * 100 : 0;
+    document.getElementById('channelInsight').innerHTML =
+      `💡 <strong>Leitura do mix:</strong> marketplaces representam <strong>${marketplaceShare.toFixed(1)}% da receita</strong>. ` +
+      `No cenário demonstrativo, <strong>${bestChannel[0]}</strong> tem a maior margem líquida (${bestMargin.toFixed(1)}%). ` +
+      `As taxas são parâmetros de simulação: substitua-as pelos contratos reais antes de tomar decisão de preço.`;
+  } catch (error) {
+    document.getElementById('reportDataStatus').textContent = 'Consolidado indisponível: inicie o servidor do Belisca para carregar os dados.';
+    console.error(error);
+  }
+}
+
 function renderKPIs() {
   const metrics = calculateFinancialMetrics();
 
@@ -657,6 +723,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. AI Simulator Button
   document.getElementById('btnRodarPrevisaoIA').addEventListener('click', runAISimulation);
 
+  // 8. Relatório unificado: dados do mesmo CSV para canais, ABC e KPIs.
+  document.getElementById('btnBaixarDatasetCSV').addEventListener('click', () => {
+    window.location.href = 'dataset/pedidos_delivery_petiscos.csv';
+  });
+  document.getElementById('btnImprimirRelatorio').addEventListener('click', () => window.print());
+  document.getElementById('btnExportData').addEventListener('click', () => {
+    document.getElementById('tabBtnRelatorios').click();
+    window.print();
+  });
+
   // 8. Copy Code Buttons
   document.querySelectorAll('.btn-copy-code').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -682,4 +758,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderOrdersTable();
   renderStockAndBOM();
   runAISimulation();
+  loadExecutiveReport();
 });

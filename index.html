@@ -503,13 +503,14 @@
       <div class="report-header-banner">
         <div class="report-header-info">
           <div class="badge-amber">RELATÓRIO GERENCIAL CONSOLIDADO</div>
-          <h2>Painel Executivo de KPIs do Delivery</h2>
-          <p>Métricas apuradas com base nos 600 pedidos do dataset local. Identifique os petiscos mais rentáveis, canais mais eficientes e saúde do CMV.</p>
+          <h2>Painel Executivo da Operação</h2>
+          <p>Uma única visão financeira para delivery, venda direta e consumo presencial — do pedido ao CMV, à taxa e ao resultado líquido.</p>
+          <div class="report-source-strip" id="reportDataStatus">Carregando consolidado operacional…</div>
         </div>
         <div class="report-header-actions">
           <button class="btn btn-secondary" id="btnBaixarDatasetCSV">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Baixar CSV (600 Pedidos)
+            Baixar base consolidada
           </button>
           <button class="btn btn-primary" id="btnImprimirRelatorio">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -528,7 +529,7 @@
           <div class="kpi-body">
             <div class="kpi-value" id="repTotalFaturamento">R$ 29.840,00</div>
             <div class="kpi-sub positive">
-              <span>558 pedidos válidos</span> (42 cancelados)
+              <span id="repPedidosStatus">— pedidos conciliados</span>
             </div>
           </div>
         </div>
@@ -541,7 +542,7 @@
           <div class="kpi-body">
             <div class="kpi-value font-mono" id="repTicketMedio">R$ 53,48</div>
             <div class="kpi-sub">
-              <span>Média da operação delivery</span>
+              <span>Média de todos os canais</span>
             </div>
           </div>
         </div>
@@ -554,7 +555,7 @@
           <div class="kpi-body">
             <div class="kpi-value font-mono text-amber" id="repCMVMedio">30.4%</div>
             <div class="kpi-sub positive">
-              <span>✓ Dentro da meta operacional</span> (&lt; 32%)
+              <span id="repCMVStatus">Meta operacional: &lt; 32%</span>
             </div>
           </div>
         </div>
@@ -567,7 +568,7 @@
           <div class="kpi-body">
             <div class="kpi-value font-mono text-amber" id="repBreakEven">14 porções/dia</div>
             <div class="kpi-sub">
-              <span>Cobre 100% dos custos fixos da cozinha</span>
+              <span>Referência operacional para o mix atual</span>
             </div>
           </div>
         </div>
@@ -609,7 +610,7 @@
               <h3>🛵 Comparativo de Canais de Venda</h3>
               <span class="text-muted">Impacto das taxas de aplicativo na margem líquida</span>
             </div>
-            <span class="badge-neutral">iFood vs Whats vs Balcão</span>
+            <span class="badge-neutral">Marketplaces, direto e presencial</span>
           </div>
           <div class="channel-table-wrap">
             <table class="data-table compact" id="tableCanais">
@@ -627,8 +628,8 @@
               </tbody>
             </table>
           </div>
-          <div class="channel-insight-box" style="margin-top: 18px;">
-            💡 <strong>Conclusão Estratégica:</strong> Embora o <strong>iFood</strong> represente 55% do faturamento, o <strong>WhatsApp Direto</strong> entrega <strong>R$ 38,20 de lucro a cada R$ 100 vendidos</strong> (contra apenas R$ 22,40 no iFood). A estratégia ideal é converter clientes de app para o canal direto através de cupons na embalagem.
+          <div class="channel-insight-box" id="channelInsight" style="margin-top: 18px;">
+            Carregando leitura do mix de canais…
           </div>
         </div>
       </div>
