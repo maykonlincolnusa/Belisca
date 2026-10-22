@@ -1,11 +1,14 @@
 """
 Belisca • Script de Previsão de Demanda e Cruzamento de Estoque para Petiscos
-Utiliza o modelo Amazon Chronos (ou fallback estatístico de quantis)
-e cruza com a Ficha Técnica dos Petiscos para calcular a compra ideal de insumos.
+Usa regressão de quantis (ML) treinada no histórico local e cruza com a
+Ficha Técnica dos Petiscos para calcular a compra ideal de insumos.
 """
 
 import sys
 import json
+from pathlib import Path
+
+from forecast_service import DemandForecaster
 
 # Ficha Técnica dos Petiscos do Belisca (BOM)
 FICHAS_TECNICAS = {
@@ -53,18 +56,10 @@ ESTOQUE_ATUAL = {
 }
 
 def prever_demanda_fim_de_semana():
-    """
-    Simula a inferência do amazon/chronos-2 para o fim de semana (Sex, Sáb, Dom).
-    Em ambiente com GPU e 'pip install chronos-forecasting', o modelo oficial
-    Chronos2Pipeline.from_pretrained('amazon/chronos-2') gera os quantis.
-    """
-    previsoes = {
-        "Batata Rústica c/ Cheddar e Bacon": {"p10": 42, "p50": 58, "p90": 74},
-        "Isca de Tilápia c/ Molho Tártaro": {"p10": 22, "p50": 34, "p90": 45},
-        "Bolinho de Costela Desfiada (8 un)": {"p10": 28, "p50": 38, "p90": 50},
-        "Dadinho de Tapioca c/ Queijo Coalho (10 un)": {"p10": 20, "p50": 30, "p90": 40}
-    }
-    return previsoes
+    """Prevê três dias usando o mesmo modelo publicado na API web."""
+    dataset = Path(__file__).parent / "dataset" / "demanda_historica_sazonalidade.csv"
+    totais = DemandForecaster(dataset).forecast(days=3, weather="Nublado", football=False)["totais"]
+    return {petisco: totais[petisco] for petisco in FICHAS_TECNICAS}
 
 def cruzar_estoque_e_financeiro(previsoes):
     print("=" * 70)

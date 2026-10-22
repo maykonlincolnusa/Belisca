@@ -72,6 +72,10 @@
         <button class="nav-tab" data-tab="tab-financeiro" id="tabBtnFinanceiro">
           <span class="tab-icon">💰</span> DRE & Conciliação
         </button>
+        <button class="nav-tab" data-tab="tab-relatorios" id="tabBtnRelatorios">
+          <span class="tab-icon">📊</span> Relatório & KPIs
+          <span class="counter-badge" id="reportBadge">600 ped</span>
+        </button>
         <button class="nav-tab" data-tab="tab-ia-huggingface" id="tabBtnIA">
           <span class="tab-icon">🤗</span> IA & Hugging Face Hub
           <span class="ai-badge">Modelos & Datasets</span>
@@ -494,7 +498,143 @@
       </div>
     </section>
 
-    <!-- 5. TAB IA & HUGGING FACE HUB -->
+    <!-- 5. TAB RELATÓRIOS & KPIS -->
+    <section class="tab-content" id="tab-relatorios">
+      <div class="report-header-banner">
+        <div class="report-header-info">
+          <div class="badge-amber">RELATÓRIO GERENCIAL CONSOLIDADO</div>
+          <h2>Painel Executivo de KPIs do Delivery</h2>
+          <p>Métricas apuradas com base nos 600 pedidos do dataset local. Identifique os petiscos mais rentáveis, canais mais eficientes e saúde do CMV.</p>
+        </div>
+        <div class="report-header-actions">
+          <button class="btn btn-secondary" id="btnBaixarDatasetCSV">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Baixar CSV (600 Pedidos)
+          </button>
+          <button class="btn btn-primary" id="btnImprimirRelatorio">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Imprimir / Exportar PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Executive Cards Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Faturamento Total (Dataset)</span>
+            <span class="kpi-icon-wrap amber">📈</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="repTotalFaturamento">R$ 29.840,00</div>
+            <div class="kpi-sub positive">
+              <span>558 pedidos válidos</span> (42 cancelados)
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Ticket Médio por Pedido</span>
+            <span class="kpi-icon-wrap">🏷️</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value font-mono" id="repTicketMedio">R$ 53,48</div>
+            <div class="kpi-sub">
+              <span>Média da operação delivery</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">CMV Médio Real</span>
+            <span class="kpi-icon-wrap">🥩</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value font-mono text-amber" id="repCMVMedio">30.4%</div>
+            <div class="kpi-sub positive">
+              <span>✓ Dentro da meta operacional</span> (&lt; 32%)
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card highlight-border">
+          <div class="kpi-header">
+            <span class="kpi-title">Ponto de Equilíbrio Diário</span>
+            <span class="kpi-icon-wrap gold">⚖️</span>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value font-mono text-amber" id="repBreakEven">14 porções/dia</div>
+            <div class="kpi-sub">
+              <span>Cobre 100% dos custos fixos da cozinha</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curva ABC e Comparativo de Canais -->
+      <div class="report-two-col">
+        <!-- Col 1: Curva ABC de Petiscos -->
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h3>🏆 Curva ABC de Vendas de Petiscos</h3>
+              <span class="text-muted">Classificação de Pareto: Quais petiscos geram 70% da receita</span>
+            </div>
+            <span class="badge-amber">6 Itens Analisados</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="tableCurvaABC">
+              <thead>
+                <tr>
+                  <th>Classe</th>
+                  <th>Petisco</th>
+                  <th>Qtd Vendida</th>
+                  <th>Receita Total</th>
+                  <th>Part. %</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyCurvaABC">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Col 2: Eficiência e Rentabilidade por Canal -->
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h3>🛵 Comparativo de Canais de Venda</h3>
+              <span class="text-muted">Impacto das taxas de aplicativo na margem líquida</span>
+            </div>
+            <span class="badge-neutral">iFood vs Whats vs Balcão</span>
+          </div>
+          <div class="channel-table-wrap">
+            <table class="data-table compact" id="tableCanais">
+              <thead>
+                <tr>
+                  <th>Canal</th>
+                  <th>Pedidos</th>
+                  <th>Faturamento</th>
+                  <th>Taxa Efetiva</th>
+                  <th>Margem Líq.</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyCanais">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="channel-insight-box" style="margin-top: 18px;">
+            💡 <strong>Conclusão Estratégica:</strong> Embora o <strong>iFood</strong> represente 55% do faturamento, o <strong>WhatsApp Direto</strong> entrega <strong>R$ 38,20 de lucro a cada R$ 100 vendidos</strong> (contra apenas R$ 22,40 no iFood). A estratégia ideal é converter clientes de app para o canal direto através de cupons na embalagem.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. TAB IA & HUGGING FACE HUB -->
     <section class="tab-content" id="tab-ia-huggingface">
       <div class="ia-hero">
         <div class="ia-hero-badge">
@@ -691,11 +831,11 @@ clf.fit(X_erp_train, y_ruptura_train)</code></pre>
       <div class="section-card ai-simulator-card">
         <div class="section-header">
           <div>
-            <h3>🔮 Simulador do Modelo Chronos-2 para a Cozinha do Belisca</h3>
-            <span class="text-muted">Previsão probabilística para a próxima Sexta e Sábado (Fim de Semana)</span>
+            <h3>🔮 Previsão ML de Demanda e Compra para a Cozinha</h3>
+            <span class="text-muted">Regressão por quantis treinada no histórico local: cenários P10, P50 e P90 para os próximos 3 dias</span>
           </div>
           <button class="btn btn-primary" id="btnRodarPrevisaoIA">
-            <span class="sparkle">✨</span> Rodar Previsão com IA
+            <span class="sparkle">✨</span> Atualizar previsão ML
           </button>
         </div>
 

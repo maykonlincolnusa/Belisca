@@ -1,0 +1,16 @@
+petisco,categoria,insumo_id,insumo_nome,quantidade_porcao,unidade_medida,custo_unitario_insumo,custo_total_no_prato,fornecedor_padrao
+Batata Rústica c/ Cheddar e Bacon,Frituras,batata_palito,Batata Rústica Congelada,0.450,kg,11.50,5.18,Distribuidora São Paulo Alimentos
+Batata Rústica c/ Cheddar e Bacon,Frituras,cheddar_cremoso,Queijo Cheddar Bisnaga,0.080,kg,28.00,2.24,Laticínios da Serra
+Batata Rústica c/ Cheddar e Bacon,Frituras,bacon_cubos,Bacon Defumado em Cubos,0.060,kg,36.00,2.16,Frigorífico Sul Carnes
+Batata Rústica c/ Cheddar e Bacon,Frituras,embalagem_kraft,Embalagem Térmica Kraft,1.000,un,1.45,1.45,Embalagens Express
+Batata Rústica c/ Cheddar e Bacon,Frituras,oleo_fritura,Óleo de Fritura Especial,0.085,L,8.90,0.77,Distribuidora São Paulo Alimentos
+Isca de Tilápia c/ Molho Tártaro,Peixes,tilapia_file,Filé de Tilápia Congelado,0.400,kg,42.00,16.80,Pescados Mar Azul
+Isca de Tilápia c/ Molho Tártaro,Peixes,embalagem_kraft,Embalagem Térmica Kraft,1.000,un,1.45,1.45,Embalagens Express
+Bolinho de Costela Desfiada (8 un),Salgados,bolinho_costela_un,Bolinho de Costela Artesanal,8.000,un,1.65,13.20,Fábrica de Salgados Gourmet
+Bolinho de Costela Desfiada (8 un),Salgados,embalagem_kraft,Embalagem Térmica Kraft,1.000,un,1.45,1.45,Embalagens Express
+Dadinho de Tapioca c/ Queijo Coalho (10 un),Boteco,dadinho_tapioca_un,Dadinho de Tapioca Artesanal,10.000,un,1.10,11.00,Fábrica de Salgados Gourmet
+Dadinho de Tapioca c/ Queijo Coalho (10 un),Boteco,embalagem_kraft,Embalagem Térmica Kraft,1.000,un,1.45,1.45,Embalagens Express
+Mini Pastéis Mistos de Boteco (10 un),Pastéis,mini_pasteis_un,Mini Pastéis Congelados Variados,10.000,un,0.95,9.50,Massa Express
+Mini Pastéis Mistos de Boteco (10 un),Pastéis,embalagem_kraft,Embalagem Térmica Kraft,1.000,un,1.45,1.45,Embalagens Express
+Combo 2x Cerveja IPA Lata 350ml,Bebidas,cerveja_ipa_lata,Cerveja IPA Artesanal Lata 350ml,2.000,un,6.20,12.40,Cervejaria Local
+Combo 2x Cerveja IPA Lata 350ml,Bebidas,sacola_termica,Sacola Térmica Kraft Bebidas,1.000,un,1.45,1.45,Embalagens Express

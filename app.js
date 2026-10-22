@@ -451,57 +451,43 @@ function showToast(msg, type = 'amber') {
 }
 
 // ==========================================================================
-// SIMULADOR IA CHRONOS-2 & TIMESFM
+// PREVISÃO DE DEMANDA: REGRESSÃO ML POR QUANTIS
 // ==========================================================================
 
-function runAISimulation() {
+function getForecastIngredient(productName, forecast) {
+  const product = Object.values(BeliscaState.petiscos).find(p => p.name === productName);
+  if (!product) return null;
+
+  const requirements = product.bom.map(item => {
+    const ingredient = BeliscaState.ingredients[item.ingredientId];
+    const needed = item.qty * forecast;
+    return { ingredient, needed, shortage: Math.max(0, needed - ingredient.qty) };
+  });
+  return requirements.sort((a, b) => b.shortage - a.shortage || (b.needed / b.ingredient.qty) - (a.needed / a.ingredient.qty))[0];
+}
+
+async function runAISimulation() {
   const simResults = document.getElementById('aiSimResults');
-  simResults.innerHTML = '<div style="color:var(--amber-primary); font-family:var(--font-mono); padding:16px;">Calculando inferência zero-shot com Hugging Face (amazon/chronos-2)...</div>';
-
-  setTimeout(() => {
-    const predictions = [
-      {
-        item: 'Batata Rústica c/ Cheddar e Bacon',
-        p10: 42,
-        p50: 58,
-        p90: 74,
-        keyIngredient: 'Bacon em Cubos',
-        neededQty: '4.5 kg',
-        currentStock: `${BeliscaState.ingredients.bacon_cubos.qty} kg`,
-        risk: BeliscaState.ingredients.bacon_cubos.qty < 4.5 ? 'CRÍTICO' : 'SEGURO'
-      },
-      {
-        item: 'Isca de Tilápia Crocante',
-        p10: 22,
-        p50: 34,
-        p90: 45,
-        keyIngredient: 'Filé de Tilápia',
-        neededQty: '13.6 kg',
-        currentStock: `${BeliscaState.ingredients.tilapia_file.qty} kg`,
-        risk: BeliscaState.ingredients.tilapia_file.qty < 13.6 ? 'CRÍTICO' : 'SEGURO'
-      },
-      {
-        item: 'Bolinho de Costela Desfiada',
-        p10: 28,
-        p50: 38,
-        p90: 50,
-        keyIngredient: 'Bolinho de Costela (un)',
-        neededQty: '304 un',
-        currentStock: `${BeliscaState.ingredients.bolinho_costela_un.qty} un`,
-        risk: BeliscaState.ingredients.bolinho_costela_un.qty < 304 ? 'CRÍTICO' : 'SEGURO'
-      },
-      {
-        item: 'Dadinho de Tapioca c/ Queijo Coalho',
-        p10: 20,
-        p50: 30,
-        p90: 40,
-        keyIngredient: 'Dadinho de Tapioca (un)',
-        neededQty: '300 un',
-        currentStock: `${BeliscaState.ingredients.dadinho_tapioca_un.qty} un`,
-        risk: BeliscaState.ingredients.dadinho_tapioca_un.qty < 300 ? 'CRÍTICO' : 'SEGURO'
-      }
-    ];
-
+  simResults.innerHTML = '<div style="color:var(--amber-primary); font-family:var(--font-mono); padding:16px;">Treinando e consultando modelo ML no histórico operacional...</div>';
+  try {
+    const response = await fetch('/api/previsao?dias=3&clima=Nublado&jogo=false');
+    if (!response.ok) throw new Error('Não foi possível obter a previsão.');
+    const data = await response.json();
+    const predictions = Object.entries(data.totais).map(([item, forecast]) => {
+      const supply = getForecastIngredient(item, forecast.p50);
+      const current = supply.ingredient.qty;
+      const risk = supply.shortage > 0 ? 'COMPRAR' : 'SEGURO';
+      return {
+        item,
+        ...forecast,
+        keyIngredient: supply.ingredient.name,
+        neededQty: `${supply.needed.toFixed(1)} ${supply.ingredient.unit}`,
+        currentStock: `${current} ${supply.ingredient.unit}`,
+        shortage: supply.shortage,
+        risk,
+        mae: data.erro_mae_p50_por_produto[item]
+      };
+    });
     simResults.innerHTML = '';
     predictions.forEach(p => {
       const card = document.createElement('div');
@@ -527,15 +513,18 @@ function runAISimulation() {
         </div>
         <div class="sim-recommendation">
           <strong>Insumo Chave:</strong> ${p.keyIngredient}<br>
-          Necessário p/ fim de semana: <strong>${p.neededQty}</strong><br>
-          Estoque atual: <strong>${p.currentStock}</strong>
+          Necessário para 3 dias (P50): <strong>${p.neededQty}</strong><br>
+          Estoque atual: <strong>${p.currentStock}</strong>${p.shortage > 0 ? `<br><strong class="text-red">Compra sugerida: ${p.shortage.toFixed(1)}</strong>` : ''}<br>
+          <span class="text-muted">Erro médio P50 (validação): ${p.mae} porções/dia</span>
         </div>
       `;
       simResults.appendChild(card);
     });
-
-    showToast('Previsão probabilística gerada com base no modelo amazon/chronos-2!', 'amber');
-  }, 600);
+    showToast(`Previsão ML atualizada: ${data.historico_dias} dias de histórico e cenários P10/P50/P90.`, 'amber');
+  } catch (error) {
+    simResults.innerHTML = '<div class="text-red" style="padding:16px;">Não foi possível carregar a previsão. Inicie o servidor Python para habilitar a API de ML.</div>';
+    console.error(error);
+  }
 }
 
 // ==========================================================================
