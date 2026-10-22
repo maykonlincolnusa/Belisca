@@ -574,6 +574,41 @@
         </div>
       </div>
 
+      <!-- Leitura visual: mix de receita e rentabilidade por canal -->
+      <div class="report-visual-grid">
+        <section class="section-card visual-card">
+          <div class="section-header">
+            <div>
+              <h3>Mix de Receita por Canal</h3>
+              <span class="text-muted">De onde vem o faturamento conciliado</span>
+            </div>
+            <span class="visual-card-kicker">RECEITA</span>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-chart" id="channelDonut" role="img" aria-label="Distribuição de receita por canal">
+              <div class="donut-center"><strong id="donutTotal">—</strong><span>receita</span></div>
+            </div>
+            <div class="channel-legend" id="channelLegend"></div>
+          </div>
+        </section>
+
+        <section class="section-card visual-card">
+          <div class="section-header">
+            <div>
+              <h3>Margem Líquida por Canal</h3>
+              <span class="text-muted">Após taxas e CMV do pedido</span>
+            </div>
+            <span class="visual-card-kicker">RENTABILIDADE</span>
+          </div>
+          <div class="margin-bars" id="marginBars"></div>
+        </section>
+      </div>
+
+      <div class="decision-strip" id="decisionStrip" aria-live="polite">
+        <span class="decision-eyebrow">LEITURA EXECUTIVA</span>
+        <span>Calculando os destaques do período…</span>
+      </div>
+
       <!-- Curva ABC e Comparativo de Canais -->
       <div class="report-two-col">
         <!-- Col 1: Curva ABC de Petiscos -->

@@ -291,6 +291,14 @@ async function loadExecutiveReport() {
 
     const channelBody = document.getElementById('tbodyCanais');
     const channels = Object.entries(report.desempenho_canais).sort(([, a], [, b]) => b.faturamento - a.faturamento);
+    const channelColors = {
+      'iFood': '#ffb800',
+      'WhatsApp / Direto': '#35d07f',
+      '99Food': '#8b5cf6',
+      'Rappi': '#ff5b67',
+      'Balcão / Retirada': '#45b7ff',
+      'Salão / Mesa': '#f59e0b'
+    };
     channelBody.innerHTML = channels.map(([channel, data]) => {
       const feePct = data.faturamento ? (data.taxas / data.faturamento) * 100 : 0;
       const marginPct = data.faturamento ? (data.lucro / data.faturamento) * 100 : 0;
@@ -301,6 +309,29 @@ async function loadExecutiveReport() {
         <td class="font-mono text-red">${feePct.toFixed(1)}%</td>
         <td class="font-mono text-amber">${marginPct.toFixed(1)}%</td>
       </tr>`;
+    }).join('');
+
+    let cumulative = 0;
+    const segments = channels.map(([channel, data]) => {
+      const start = cumulative;
+      cumulative += (data.faturamento / report.faturamento_bruto) * 100;
+      return `${channelColors[channel] || '#8c8c9a'} ${start.toFixed(2)}% ${cumulative.toFixed(2)}%`;
+    });
+    document.getElementById('channelDonut').style.background = `conic-gradient(${segments.join(', ')})`;
+    document.getElementById('donutTotal').textContent = formatBRL(report.faturamento_bruto);
+    document.getElementById('channelLegend').innerHTML = channels.map(([channel, data]) => {
+      const share = (data.faturamento / report.faturamento_bruto) * 100;
+      return `<div class="legend-row">
+        <span class="legend-dot" style="background:${channelColors[channel] || '#8c8c9a'}"></span>
+        <span>${channel}</span><strong>${share.toFixed(1)}%</strong>
+      </div>`;
+    }).join('');
+    document.getElementById('marginBars').innerHTML = channels.map(([channel, data]) => {
+      const margin = data.faturamento ? (data.lucro / data.faturamento) * 100 : 0;
+      return `<div class="margin-bar-row">
+        <div class="margin-bar-label"><span>${channel}</span><strong>${margin.toFixed(1)}%</strong></div>
+        <div class="margin-track"><span style="width:${Math.max(0, Math.min(100, margin)).toFixed(1)}%; background:${channelColors[channel] || '#8c8c9a'}"></span></div>
+      </div>`;
     }).join('');
 
     const bestChannel = channels.reduce((best, current) => {
@@ -315,6 +346,12 @@ async function loadExecutiveReport() {
       `💡 <strong>Leitura do mix:</strong> marketplaces representam <strong>${marketplaceShare.toFixed(1)}% da receita</strong>. ` +
       `No cenário demonstrativo, <strong>${bestChannel[0]}</strong> tem a maior margem líquida (${bestMargin.toFixed(1)}%). ` +
       `As taxas são parâmetros de simulação: substitua-as pelos contratos reais antes de tomar decisão de preço.`;
+    const revenueLeader = channels[0];
+    document.getElementById('decisionStrip').innerHTML =
+      `<span class="decision-eyebrow">LEITURA EXECUTIVA</span>` +
+      `<span><strong>${revenueLeader[0]}</strong> lidera receita (${formatBRL(revenueLeader[1].faturamento)}), ` +
+      `enquanto <strong>${bestChannel[0]}</strong> lidera margem (${bestMargin.toFixed(1)}%). ` +
+      `Use marketplaces para alcance e canais diretos/presenciais para defender rentabilidade.</span>`;
   } catch (error) {
     document.getElementById('reportDataStatus').textContent = 'Consolidado indisponível: inicie o servidor do Belisca para carregar os dados.';
     console.error(error);
