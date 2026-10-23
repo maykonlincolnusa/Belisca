@@ -895,6 +895,50 @@ clf.fit(X_erp_train, y_ruptura_train)</code></pre>
     </button>
   </div>
 
+  <!-- Navegação nativa de mobile: mantém todas as áreas sem comprimir a barra superior -->
+  <nav class="mobile-tabbar" aria-label="Navegação principal">
+    <button class="mobile-tab active" type="button" data-mobile-tab="tab-triangulacao" aria-label="Visão geral">
+      <span class="mobile-tab-icon" aria-hidden="true">⌂</span><span>Início</span>
+    </button>
+    <button class="mobile-tab" type="button" data-mobile-tab="tab-pedidos" aria-label="Pedidos vendidos">
+      <span class="mobile-tab-icon" aria-hidden="true">🛵</span><span>Pedidos</span>
+    </button>
+    <button class="mobile-tab mobile-tab-create" type="button" id="btnNovoPedidoTabbar" aria-label="Lançar pedido">
+      <span class="mobile-create-icon" aria-hidden="true">+</span><span>Lançar</span>
+    </button>
+    <button class="mobile-tab" type="button" data-mobile-tab="tab-estoque" aria-label="Estoque">
+      <span class="mobile-tab-icon" aria-hidden="true">▦</span><span>Estoque</span>
+    </button>
+    <button class="mobile-tab" type="button" id="btnAbrirMais" aria-haspopup="dialog" aria-controls="mobileMaisSheet" aria-label="Mais opções">
+      <span class="mobile-tab-icon" aria-hidden="true">•••</span><span>Mais</span>
+    </button>
+  </nav>
+
+  <div class="mobile-sheet-backdrop" id="mobileMaisSheet" aria-hidden="true">
+    <section class="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="mobileMaisTitulo">
+      <div class="mobile-sheet-grabber" aria-hidden="true"></div>
+      <div class="mobile-sheet-heading">
+        <div>
+          <span class="mobile-sheet-kicker">BELISCA</span>
+          <h2 id="mobileMaisTitulo">Mais opções</h2>
+        </div>
+        <button class="mobile-sheet-close" type="button" id="btnFecharMais" aria-label="Fechar">×</button>
+      </div>
+      <div class="mobile-menu-group">
+        <button class="mobile-menu-item" type="button" data-mobile-tab="tab-financeiro">
+          <span class="mobile-menu-icon">💰</span><span class="mobile-menu-copy"><strong>Financeiro</strong><small>DRE e conciliação</small></span><span class="mobile-menu-chevron">›</span>
+        </button>
+        <button class="mobile-menu-item" type="button" data-mobile-tab="tab-relatorios">
+          <span class="mobile-menu-icon">📊</span><span class="mobile-menu-copy"><strong>Relatórios e KPIs</strong><small>Decisões e desempenho</small></span><span class="mobile-menu-chevron">›</span>
+        </button>
+        <button class="mobile-menu-item" type="button" data-mobile-tab="tab-ia-huggingface">
+          <span class="mobile-menu-icon">🤗</span><span class="mobile-menu-copy"><strong>Previsão de demanda</strong><small>IA e modelos operacionais</small></span><span class="mobile-menu-chevron">›</span>
+        </button>
+      </div>
+      <button class="mobile-export-action" type="button" id="btnExportarMobile">⇩ &nbsp; Exportar relatório</button>
+    </section>
+  </div>
+
   <!-- Modal: Lançar Novo Pedido -->
   <div class="modal-overlay" id="modalNovoPedido">
     <div class="modal-card">

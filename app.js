@@ -637,15 +637,59 @@ async function runAISimulation() {
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Navigation Tabs
   const tabs = document.querySelectorAll('.nav-tab');
+  const mobileTabs = document.querySelectorAll('[data-mobile-tab]');
+  const moreSheet = document.getElementById('mobileMaisSheet');
+
+  function activateTab(targetId) {
+    const targetTab = document.querySelector(`.nav-tab[data-tab="${targetId}"]`);
+    if (!targetTab || !document.getElementById(targetId)) return;
+
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    targetTab.classList.add('active');
+    document.getElementById(targetId).classList.add('active');
+
+    // A barra de abas compacta reflete a área atual, inclusive ao navegar pelo menu "Mais".
+    document.querySelectorAll('.mobile-tab[data-mobile-tab]').forEach(t => {
+      t.classList.toggle('active', t.getAttribute('data-mobile-tab') === targetId);
+    });
+    const moreButton = document.getElementById('btnAbrirMais');
+    if (moreButton) {
+      moreButton.classList.toggle('active', ['tab-financeiro', 'tab-relatorios', 'tab-ia-huggingface'].includes(targetId));
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-      tab.classList.add('active');
-      const targetId = tab.getAttribute('data-tab');
-      document.getElementById(targetId).classList.add('active');
+      activateTab(tab.getAttribute('data-tab'));
     });
+  });
+
+  mobileTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      activateTab(tab.getAttribute('data-mobile-tab'));
+      closeMoreSheet();
+    });
+  });
+
+  function closeMoreSheet() {
+    if (!moreSheet) return;
+    moreSheet.classList.remove('active');
+    moreSheet.setAttribute('aria-hidden', 'true');
+  }
+
+  const openMoreButton = document.getElementById('btnAbrirMais');
+  if (openMoreButton) openMoreButton.addEventListener('click', () => {
+    moreSheet.classList.add('active');
+    moreSheet.setAttribute('aria-hidden', 'false');
+  });
+  document.getElementById('btnFecharMais')?.addEventListener('click', closeMoreSheet);
+  moreSheet?.addEventListener('click', (event) => {
+    if (event.target === moreSheet) closeMoreSheet();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMoreSheet();
   });
 
   // 2. Populate Petisco Select in Modal
@@ -659,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Modal Open/Close
   const modal = document.getElementById('modalNovoPedido');
-  const openModalBtns = [document.getElementById('btnNovoPedidoModal'), document.getElementById('btnNovoPedidoDirect'), document.getElementById('btnNovoPedidoMobile')];
+  const openModalBtns = [document.getElementById('btnNovoPedidoModal'), document.getElementById('btnNovoPedidoDirect'), document.getElementById('btnNovoPedidoMobile'), document.getElementById('btnNovoPedidoTabbar')];
   const closeModalBtns = [document.getElementById('modalCloseBtn'), document.getElementById('btnCancelarPedido')];
 
   openModalBtns.forEach(btn => {
@@ -670,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btnMobilePedidos').addEventListener('click', () => {
-    document.getElementById('tabBtnPedidos').click();
+    activateTab('tab-pedidos');
   });
 
   closeModalBtns.forEach(btn => {
@@ -770,7 +814,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btnImprimirRelatorio').addEventListener('click', () => window.print());
   document.getElementById('btnExportData').addEventListener('click', () => {
-    document.getElementById('tabBtnRelatorios').click();
+    activateTab('tab-relatorios');
+    window.print();
+  });
+  document.getElementById('btnExportarMobile')?.addEventListener('click', () => {
+    closeMoreSheet();
+    activateTab('tab-relatorios');
     window.print();
   });
 
