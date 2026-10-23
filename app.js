@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Modal Open/Close
   const modal = document.getElementById('modalNovoPedido');
-  const openModalBtns = [document.getElementById('btnNovoPedidoModal'), document.getElementById('btnNovoPedidoDirect')];
+  const openModalBtns = [document.getElementById('btnNovoPedidoModal'), document.getElementById('btnNovoPedidoDirect'), document.getElementById('btnNovoPedidoMobile')];
   const closeModalBtns = [document.getElementById('modalCloseBtn'), document.getElementById('btnCancelarPedido')];
 
   openModalBtns.forEach(btn => {
@@ -667,6 +667,10 @@ document.addEventListener('DOMContentLoaded', () => {
       modal.classList.add('active');
       updateLivePreview();
     });
+  });
+
+  document.getElementById('btnMobilePedidos').addEventListener('click', () => {
+    document.getElementById('tabBtnPedidos').click();
   });
 
   closeModalBtns.forEach(btn => {

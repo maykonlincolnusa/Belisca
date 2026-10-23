@@ -883,6 +883,18 @@ clf.fit(X_erp_train, y_ruptura_train)</code></pre>
 
   </main>
 
+  <!-- Ação persistente em telas pequenas: alcançável com o polegar -->
+  <div class="mobile-action-dock" aria-label="Ações rápidas">
+    <button class="mobile-dock-secondary" type="button" id="btnMobilePedidos" aria-label="Ver pedidos vendidos">
+      <span aria-hidden="true">🛵</span>
+      <span>Pedidos</span>
+    </button>
+    <button class="mobile-dock-primary" type="button" id="btnNovoPedidoMobile">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Lançar pedido
+    </button>
+  </div>
+
   <!-- Modal: Lançar Novo Pedido -->
   <div class="modal-overlay" id="modalNovoPedido">
     <div class="modal-card">
