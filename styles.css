@@ -1979,7 +1979,9 @@ body {
   .header-actions .btn-primary svg { width: 20px; height: 20px; }
   .header-actions .btn-primary { font-size: 0; }
 
-  .sub-nav { padding: 0 16px 12px; overflow: hidden; }
+  /* No celular a navegação principal fica fixa no rodapé. Ocultar as
+     abas desktop evita duas barras concorrendo pelo mesmo espaço. */
+  .sub-nav { display: none; }
   .nav-links {
     gap: 8px;
     padding: 3px 0 2px;

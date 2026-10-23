@@ -651,11 +651,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // A barra de abas compacta reflete a área atual, inclusive ao navegar pelo menu "Mais".
     document.querySelectorAll('.mobile-tab[data-mobile-tab]').forEach(t => {
-      t.classList.toggle('active', t.getAttribute('data-mobile-tab') === targetId);
+      const isActive = t.getAttribute('data-mobile-tab') === targetId;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-current', isActive ? 'page' : 'false');
     });
     const moreButton = document.getElementById('btnAbrirMais');
     if (moreButton) {
-      moreButton.classList.toggle('active', ['tab-financeiro', 'tab-relatorios', 'tab-ia-huggingface'].includes(targetId));
+      const isMoreSection = ['tab-financeiro', 'tab-relatorios', 'tab-ia-huggingface'].includes(targetId);
+      moreButton.classList.toggle('active', isMoreSection);
+      moreButton.setAttribute('aria-current', isMoreSection ? 'page' : 'false');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
